@@ -1,0 +1,465 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<svg width="960" height="500"></svg>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<style>
+
+body {
+  font: 10px sans-serif;
+  background-color: #171b25;
+}
+
+.line {
+  fill: none;
+  stroke-width: 3px;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.hover-line {
+  stroke: #B74779;
+  stroke-width: 1px;
+  stroke-dasharray: 3,3;
+}
+
+.axis-x *{
+  stroke: #d9d9d9;
+    opacity: 0.7;
+}
+
+.axis-minor-x *{
+	stroke: #d9d9d9;
+    opacity: 0.7;
+}
+
+.axis-minor-x .tick line {display: none;}
+
+.axis-y *{
+  stroke: #d9d9d9;
+  opacity: 0.7;
+}
+
+.grid *{
+  stroke: #d9d9d9;
+  stroke-width: 1px;
+  opacity: 0.6;
+}
+
+rect {
+  opacity: 0.2;
+}
+
+.legend-text {
+	fill: #d9d9d9;
+	opacity: 0.6;
+}
+
+.legend-rect {
+	opacity: 1;
+}
+
+path.domain {
+	opacity:0;
+}
+
+.legendtop-text {
+	fill: #d9d9d9;
+	opacity: 0.6;
+}
+
+</style>
+</head>
+<body>
+<script>
+
+var data = [
+  {
+    "month": "May 4 14:00",
+    'totalAmount': 0, 
+    'totalProfit': 3200, 
+    'totalRevenue': 3400
+  },
+  {
+    "month": "May 4 16:00",
+    'totalAmount': 1125, 
+    'totalProfit': 2250, 
+    'totalRevenue': 3450
+  },  
+  {
+    "month": "May 4 18:00",
+    'totalAmount': 1228, 
+    'totalProfit': 1280, 
+    'totalRevenue': 2480
+  },  
+  {
+    "month": "May 4 20:00",
+    'totalAmount': 2129, 
+    'totalProfit': 2290, 
+    'totalRevenue': 3490
+  },
+  {
+    "month": "May 4 22:00",
+    'totalAmount': 3129, 
+    'totalProfit': 2290, 
+    'totalRevenue': 3490
+  },
+  {
+    "month": "May 5 00:00",
+    'totalAmount': 2230, 
+    'totalProfit': 3300, 
+    'totalRevenue': 2500
+  }, 
+    {
+    "month": "May 5 02:00",
+    'totalAmount': 1212, 
+    'totalProfit': 2120, 
+    'totalRevenue': 3490
+  },
+  {
+    "month": "May 5 04:00",
+    'totalAmount': 2315, 
+    'totalProfit': 3450, 
+    'totalRevenue': 3190
+  },  
+  {
+    "month": "May 5 06:00",
+    'totalAmount': 2619, 
+    'totalProfit': 3250, 
+    'totalRevenue': 3390
+  },   
+   {
+    "month": "May 5 08:00",
+    'totalAmount': 2395, 
+    'totalProfit': 3350, 
+    'totalRevenue': 3163
+  }, 
+  {
+    "month": "May 5 10:00",
+    'totalAmount': 2322, 
+    'totalProfit': 3210, 
+    'totalRevenue': 3890
+  },   
+  {
+    "month": "May 5 12:00",
+    'totalAmount': 2340, 
+    'totalProfit': 2300, 
+    'totalRevenue': 3600
+  },
+  {
+    "month": "May 5 14:00",
+    'totalAmount': 3276, 
+    'totalProfit': 3100, 
+    'totalRevenue': 3800
+  },
+  {
+    "month": "May 5 16:00",
+    'totalAmount': 3165, 
+    'totalProfit': 2807, 
+    'totalRevenue': 3900
+  },
+  {
+    "month": "May 5 18:00", 
+    'totalAmount': 2112, 
+    'totalProfit': 2823, 
+    'totalRevenue': 2900
+  },
+  {
+    "month": "May 5 20:00",
+    'totalAmount': 3107, 
+    'totalProfit': 3845, 
+    'totalRevenue': 3890
+  }
+];
+
+var selectedMinimumValue;
+var selectedMaxValue;
+var tempX;
+var tempX2;
+var ticksXPosition = [];
+var trendsText = {'totalAmount': 'amount', 'totalProfit': 'profit', 'totalRevenue': 'revenue'};
+
+// set the dimensions and margins of the graph
+var margin = { top: 30, right: 50, bottom: 50, left: 50 },  
+    svg = d3.select('svg'),
+    width = +svg.attr('width') - margin.right,
+    height = +svg.attr('height') - margin.top - margin.bottom;
+
+// parsing data
+var parser = d3.timeParse("%b %d %H:%M");
+
+// format values
+var formatValue = d3.format(".2f");
+
+// timestamp format
+var timestamp = d3.timeFormat("%a, %b %d %H:%M:%S"); 
+
+data.forEach(function(d) {
+        d.month = parser(d.month);
+    });
+
+var g = svg.append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// set the ranges
+var x = d3.scaleBand().rangeRound([0, width]).padding(1),
+    y = d3.scaleLinear().rangeRound([height, 0]),
+    z = d3.scaleOrdinal(['#036888','#0D833C','#D2392A']);
+
+// define the line
+var line = d3.line()
+  .x(function(d) { return x(d.month); })
+  .y(function(d) { return y(d.total); });
+
+// scale the range of the data
+z.domain(d3.keys(data[0]).filter(function(key) {
+  return key !== "month";
+}));
+
+var trends = z.domain().map(function(name) {
+  return {
+    name: name,
+    values: data.map(function(d) {
+      return {
+        month: d.month,
+        total: +d[name]
+      };
+    })
+  };
+});
+
+x.domain(data.map(function(d) { return d.month; }));
+y.domain([0, 4000]);
+
+//  x-axis scaling
+var xAxis = d3.axisBottom().tickFormat(d3.timeFormat("%b %d")).scale(x);
+var xMinorAxis = d3.axisBottom().tickFormat(d3.timeFormat("%H:%M")).tickSize(20).scale(x);
+
+// y-axis scaling
+var yAxis = d3.axisLeft()
+    .ticks(5)
+	.tickPadding(5)
+    .tickFormat(function(d) { return formatValue(d)})
+    .scale(y);
+
+// Draw the bottom legend
+var legend = g.selectAll('g')
+  .data(trends)
+  .enter()
+  .append('g')
+  .attr('class', 'legend')
+  .attr("transform", function(d,i){
+    var horz = 100*i;
+     vert=0;
+    if(horz>= width){
+      horz = 100*(i-4);     
+    }
+    return "translate(" + horz + "," + vert + ")";
+  });
+
+// Bottom legends
+legend.append('rect')
+  .attr('x', function(d, i) { return width / 2 - (i + 4) * 20 - 5; })
+  .attr('y', height + margin.top + 10)
+  .attr('width', 35)
+  .attr('height', 3)
+  .attr("class", "legend-rect")
+  .style('fill', function(d) { return z(d.name); });
+
+legend.append('text')
+  .attr('x', function(d, i) { return width / 2 - (i + 4) * 20 + 33; })
+  .attr('y', height + margin.top + 14)
+  .attr("class", "legend-text")
+  .text(function(d) { return trendsText[d.name]; });
+
+/*
+// Draw the top-right legend
+var legendtop = svg.selectAll('legend')
+  .data(trends)
+  .enter()
+  .append('g'); 
+
+legendtop.append('text')
+  .attr('x', width - margin.left)
+  .attr('y', margin.top/2)
+  .attr("class", "legendtop-text")
+  .text(function(d){ return d + " MT/h";}); 
+*/
+
+// Draw the line
+var trend = g.selectAll(".trend")
+  .data(trends)
+  .enter()
+  .append("g")
+  .attr("class", "trend");
+
+trend.append("path")
+  .attr("class", "line")
+  .attr("d", function(d) { return line(d.values); })
+  .style("stroke", function(d) { return z(d.name); });
+
+// Draw the empty value for every point
+var points = g.selectAll('.points')
+  .data(trends)
+  .enter()
+  .append('g')
+  .attr('class', 'points')
+  .append('text');
+
+// Draw the circle
+trend.style("fill", "#ffffff")
+  .style("stroke", function(d) { return z(d.name); })
+  .selectAll("circle.line")
+  .data(function(d){ return d.values })
+  .enter()
+  .append("circle")
+  .attr("r", 5)
+  .style("stroke-width", 3)
+  .attr("cx", function(d) { return x(d.month); })
+  .attr("cy", function(d) { return y(d.total); });
+
+// Draw the axis
+g.append("g")
+  .attr("class", "axis-x")
+  .attr("transform", "translate(0, " + height + ")")
+// .call(d3.axisBottom(x));
+  .call(xAxis);
+
+g.append("g")
+  .attr("class", "axis-minor-x")
+  .attr("transform", "translate(0, " + height + ")")
+// .call(d3.axisBottom(x));
+  .call(xMinorAxis);
+
+g.append("g")
+  .attr("class", "axis-y")
+  //.call(d3.axisLeft(y).ticks(10))
+  .call(yAxis);
+
+// add the Y gridlines
+g.append("g")   
+  .attr("class", "grid")
+  .call(make_y_gridlines().tickSize(-width).tickFormat(""));
+
+var focus = g.append('g')
+  .attr('class', 'focus')
+  .style('display', 'none');
+
+focus.append('line')
+  .attr('class', 'x-hover-line hover-line')
+  .attr('y1' , 0)
+  .attr('y2', height);
+
+svg.append('rect')
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+  .attr("class", "overlay")
+  .attr("width", width)
+  .attr("height", height)
+  .on("mouseover", mouseover)
+  .on("mouseout", mouseout)
+  .on("mousemove", mousemove);
+
+var timeScales = data.map(function(name) { return x(name.month); });
+
+function make_y_gridlines() {    
+    return d3.axisLeft(y).ticks(5);
+}
+
+function mousedown() {
+  var m = d3.mouse(this);
+  rect = svg.append("rect")
+    .attr("id", "selector")
+    .attr("x", m[0])
+    .attr("y", m[1])
+    .attr("height", 0)
+    .attr("width", 0);
+    svg.on("mousemove", mousemove2);
+    svg.on("mouseup", mouseup); 
+}
+    svg.on("mousedown", mousedown);
+
+function mousemove2(d) {
+    var m = d3.mouse(this);
+    rect.attr("width", Math.max(0, m[0] - +rect.attr("x")))
+        .attr("height", Math.max(0, m[1] - +rect.attr("y")));
+}
+
+function mouseup() {
+  var valuesOfSelector = d3.select("#selector").node();
+  console.log(valuesOfSelector.getBoundingClientRect());
+  console.log(valuesOfSelector.getBoundingClientRect().width);
+  tempWidth=valuesOfSelector.getBoundingClientRect().width;
+  console.log(valuesOfSelector.getBoundingClientRect().height);
+  tempX = valuesOfSelector.getBoundingClientRect().x-8;
+  tempX2=tempX +tempWidth;
+  console.log("x:"+tempX);
+  console.log("x2:"+tempX2);
+  console.log(valuesOfSelector);
+  console.log("test");
+  
+  ticksArray=d3.selectAll(".tick").nodes();
+  console.log(ticksArray);
+
+  for (var i = 0; i < ticksArray.length; i++) {
+    var regExp = /\(([^)]+)\)/;
+    var matches = regExp.exec(ticksArray[i].getAttribute("transform"));
+    selectedvalues=matches[1];
+ var selectedvalue= selectedvalues.substring(0, selectedvalues.indexOf(','));
+ console.log(selectedvalue);
+ if(selectedvalue>0) {
+  ticksXPosition.push(parseFloat(selectedvalue)+50);
+ }
+}
+
+console.log("Array me positions: "+ticksXPosition);
+
+for (var z=0; z < ticksXPosition.length; z++) {
+  if (ticksXPosition[z] > tempX) {
+    selectedMinimumValue=data[z]['month'];
+  break;
+ }
+}
+
+for (var l=0; l < ticksXPosition.length; l++) {
+  if (ticksXPosition[l] < tempX2) {
+    selectedMaxValue=data[l]['month'];
+  }
+}
+
+alert("Give me data between" + selectedMinimumValue+" and "+ selectedMaxValue + "(in x values:" + tempX +" and "+ tempX2 + ")");
+svg.on("mousemove", null);  
+}
+
+var timeScales = data.map(function(name) { return x(name.month); });
+
+function mouseover() {
+  focus.style("display", null);
+  d3.selectAll('.points text').style("display", null);
+}
+
+function mouseclick() {
+alert("fdgfdgfd");
+}
+
+function mouseout() {
+  focus.style("display", "none");
+  d3.selectAll('.points text').style("display", "none");
+}
+function mousemove() {
+  var i = d3.bisect(timeScales, d3.mouse(this)[0], 1);
+  var di = data[i-1];
+  focus.attr("transform", "translate(" + x(di.month) + ",0)");
+  d3.selectAll('.points text')
+    .attr('x', function(d) { return x(di.month) + 15; })
+    .attr('y', function(d) { return y(d.values[i-1].total); })
+    .text(function(d) { return d.values[i-1].total; })
+    .style('fill', function(d) { return z(d.name); });
+}
+
+</script>
+</body>
+</html>

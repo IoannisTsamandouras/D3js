@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style>
+
+    path {
+      stroke-width: 1px;
+    }
+
+  </style>
+</head>
+<body>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+var svg = d3.select("body").append("svg")
+  .attr("width", 960)
+  .attr("height", 500)
+  .append("g")
+    .attr("transform", "translate( 480 250 )")
+    .attr("clip-path", "url(#clip)");
+
+var arc = d3.arc()
+  .innerRadius(175)
+  .outerRadius(210);
+
+var clip = svg.append("defs")
+  .append("clipPath")
+    .attr("id", "clip")
+    .append("path");
+
+svg.selectAll("path")
+  .data(d3.range(0, 181))
+  .enter()
+  .append("path")
+    .style("fill",function(d){
+      return d3.interpolateRainbow(d / 180);
+    })
+    .style("stroke",function(d){
+      return d3.interpolateRainbow(d / 180);
+    })
+    .attr("d",function(d){
+      return arc.startAngle(d * Math.PI / 90)
+        .endAngle(++d * Math.PI / 90)();
+    });
+
+d3.timer(function(t){
+  svg.attr("transform","translate( 480 250 ) rotate(" + (360 * t / 5000 % 5000) + ")");
+});
+
+arc.startAngle(0)
+  .endAngle(Math.PI * 5 / 4);
+
+stretch();
+
+function stretch(end) {
+
+  var angle = arc[end ? "endAngle" : "startAngle"],
+      interpolate = d3.interpolateNumber(angle()(), angle()() + Math.PI * 9 / 8);
+
+  clip.transition()
+    .delay(500)
+    .duration(1000)
+    .attrTween("d",function(){
+      return function(t){
+        return angle(interpolate(t))();
+      };
+    })
+    .on("end", function(){
+      stretch(!end);
+    });
+  }
+</script>

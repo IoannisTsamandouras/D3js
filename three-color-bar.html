@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<style></style>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<body>
+
+<script>
+  var svgWidth = 600, svgHeight=400;
+  scaleFactor = 20;
+
+var data = [
+  { start: 90, end: 100, color: "lightgreen" },
+  { start: 60, end: 90, color: "yellow" },
+  { start: 0, end: 60, color: "crimson" }
+];
+
+var svg = d3.select("body")
+ .append("svg")
+ .attr("width", svgWidth)
+ .attr("height", svgHeight);
+
+var x = d3.scaleLinear()
+  .domain([0, d3.max(data, function(d) { return d.end; })])
+  .range([0, 300]);
+
+var clip = svg.append("clipPath")
+  .attr("id","clip")
+  .append("rect")
+  .attr("width", 300) // width
+  .attr("height", 20)
+  .attr("rx", 12)
+  .attr("ry", 12);
+
+var bar = svg.selectAll("g")
+  .data(data)
+  .enter()
+  .append("g")
+  .attr("transform","translate(0," + scaleFactor + ")");
+    
+bar.append("rect")
+ .attr("class", "first")
+ .attr("width", function(d) {
+   return x(d.end - d.start);  // get the width
+ }) 
+ .attr("x", function(d) {
+   return x(d.start);        // get the start position
+ })
+ .attr("fill", function(d) { return d.color; })
+ .attr("height", 20)
+ .attr("clip-path","url(#clip)");
+</script>
+</body>
+</html>

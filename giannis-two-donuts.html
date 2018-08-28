@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<style>
+</style>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<body>
+<script> 
+  var svgHeight =500, svgWidth =400;
+  var radius = Math.min(svgWidth, svgHeight)/3;
+
+  var data = [
+  { "label": "Propeller", "percent": "33.33" },
+  { "label": "Hotel", "percent": "33.33" },
+  { "label": "Losses", "percent":"33.33" }
+];
+
+  var svg = d3.select("body")
+  .append("svg")
+  .attr("width", svgWidth)
+  .attr("height", svgHeight);
+
+  var color = d3.scaleOrdinal(['#00ffff', '#ff9933', '#ffff00']);
+  var dark = d3.scaleOrdinal(['#00cccc', '#cc6600', '#cccc00']);
+
+  var g = svg.append("g").attr("transform", "translate(" + svgWidth/2 + "," + svgHeight/3 + ")");
+
+  var pie = d3.pie().value(function(d){
+    return d.percent;
+  });
+
+  var pie2 = d3.pie().value(function(d){
+    return d;
+  });
+
+  var path = d3.arc().outerRadius(radius).innerRadius(160);
+  var path2 = d3.arc().outerRadius(radius).innerRadius(145);
+
+  var label = d3.arc().outerRadius(radius).innerRadius(radius + 120);
+
+  var arc = g.selectAll(".arc")
+  .data(pie(data))
+  .enter()
+  .append("g")
+  .attr("class", "arc");
+
+  var arc2 = g.selectAll(".arc2")
+  .data(pie2(data))
+  .enter()
+  .append("g")
+  .attr("class", "arc2");
+
+  arc.append("path")
+  .attr("d", path)
+  .attr("fill", function(d){
+    return color(d.data.label);
+  });
+ 
+  arc.append("path")
+  .attr("d", path2)
+  .attr("fill", function(d, i){
+    return dark(i);
+  });
+
+arc.append("text")
+.attr("text-anchor", "middle")
+.attr("transform", function(d){
+  return "translate(" + label.centroid(d) + ")"; 
+})
+.text(function(d){
+  return d.data.label;
+});
+</script>
+</body>
+</html>

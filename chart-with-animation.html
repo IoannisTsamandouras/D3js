@@ -1,0 +1,307 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<svg width="300" height="320"></svg>
+<style>
+
+body{
+  background-color: #171b25;
+}
+
+.txt{
+  font-size:14px;
+  font-family: Arial;
+  fill: #ffffff;  
+}
+
+.arc-text{
+  font-size:14px;
+  font-family: Arial;
+  fill: #ffffff;
+}
+
+</style>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+<button onClick="animateme()">Animate</button>
+<script>
+var tau = 2 * Math.PI,
+width=480, height=250,
+radius = Math.min(width, height) / 2; 
+
+var data = [
+            { "name":"Losses", "count":56, "percentage":98.6, "color": "#eaff00"},
+            { "name":"Propeller" , "count":12, "percentage":50.3, "color": "#2ee4f4"},
+            { "name":"Hotel", "count":14, "percentage":57.1, "color": "#d68400"}
+           ]; 
+
+var arc = d3.arc()
+    .innerRadius(80)
+    .outerRadius(90)
+    .startAngle(0);
+
+var arc2 = d3.arc()
+    .innerRadius(75)
+    .outerRadius(80)
+    .startAngle(0);
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+var pie = d3.pie()    
+    .value(function(d) {
+          return d.count;
+    })
+    .sort(null);
+
+var g = svg.selectAll("arc")
+    .data(pie(data))
+    .enter()
+    .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+    .attr("shape-rendering", "geometricPrecision");
+
+    g.append("text")
+    .attr("class", "txt")
+    .attr("text-anchor", "middle")
+    .attr('font-size', '2em')
+    .text("Fuel");
+
+    g.append("text")
+    .attr("class", "txt")
+    .attr("text-anchor", "middle")
+    .attr('font-size', '2em')
+    .attr("dy", ".9em")
+    .text("Decomposition");
+    
+// manually 
+     g.append("text")
+       .attr("class", "arc-text") 
+       .attr("transform", function(d) { return "translate(-108, -100)"})
+       .text(data[0].percentage + "%");
+
+       g.append("text")
+       .attr("class", "arc-text") 
+       .attr("transform", function(d) { return "translate(-110, -85)"})
+       .text(data[0].name);
+
+       g.append("text")
+       .attr("class", "arc-text") 
+       .attr("transform", function(d) { return "translate(75, 85)"})
+       .text(data[1].percentage + "%");
+
+       g.append("text")
+       .attr("class", "arc-text") 
+       .attr("transform", function(d) { return "translate(75,100)"})
+       .text(data[1].name);
+
+      g.append("text")
+       .attr("class", "arc-text") 
+       .attr("transform", function(d) { return "translate(-130, 70)"})
+       .text(data[2].percentage + "%");
+
+       g.append("text")
+       .attr("class", "arc-text") 
+       .attr("transform", function(d) { return "translate(-130, 85)"})
+       .text(data[2].name);
+
+/*
+// Protos tropos
+// Pi8agorio 8ewrima
+var w = 400,
+    h = 400,
+    r = Math.min(w, h) / 2,
+    labelr = r + 70;
+    g.append("text")
+    .attr("class", "arc-text")
+    .attr("transform", function(d) {
+      var c = arc.centroid(d),
+        x = c[0],
+        y = c[1],
+        // pythagorean theorem for hypotenuse
+        h = Math.sqrt(x*x + y*y);
+    return "translate(" + (x/h * labelr) +  ',' +
+       (y/h * labelr) +  ")"; 
+    })
+    .attr("text-anchor", function(d) {
+    // are we past the center?
+    return (d.endAngle + d.startAngle)/2 > Math.PI ?
+        "end" : "start";
+    }).text(function(d) {
+        return d.data.name + " " +d.data.percentage + "%";
+    });
+    */
+
+// Deuteros tropos  me paiksimo centroid
+/*
+    g.append("text")
+      .attr("transform", function(d) {
+        var _d = arc.centroid(d);
+        _d[0] *= 1.3; //multiply by a constant factor
+        _d[1] *= .9; //multiply by a constant factor
+        return "translate(" + _d + ")";
+      })
+      .attr("dy", ".50em")
+      .style("text-anchor", "end")
+      .text(function(d) {
+        return d.name + " " +d.data.percentage + "%";
+      });
+*/
+
+/*
+// Tritos tropos (best solution)
+// Calculate position 
+var pos = d3.arc().innerRadius(radius).outerRadius(radius+5); 
+
+// Place Labels 
+g.append("text")
+       .attr("class", "arc-text") 
+       .attr("transform", function(d) { return "translate(" + 
+    pos.centroid(d) + ")"; }) 
+       .attr("dy", 5) 
+       .attr("dominant-baseline", "central")
+       .attr("text-anchor", "middle") 
+       .attr("text-anchor", function(d) {
+    // are we past the center?
+    return (d.endAngle + d.startAngle)/2 > Math.PI ?
+        "end" : "start";
+      })
+       .text(function(d, i) { return d.data.name + " " + d.data.percentage + "%"; });
+*/
+
+// Tetartos tropos
+/*
+    g.append("text")
+    .attr("class", "arc-text")
+    .attr("transform", function(d) {
+      return "translate(" + ( (radius + 12) * Math.sin( ((d.endAngle - d.startAngle) / 2) + d.startAngle ) ) + "," + ( -1 * (radius - 12) * Math.cos( ((d.endAngle - d.startAngle) / 2) + d.startAngle ) ) + ")"; })
+    .style("text-anchor", function(d) {
+      var rads = ((d.endAngle - d.startAngle) / 2) + d.startAngle;
+      if ( (rads > 7 * Math.PI / 4 && rads < Math.PI / 4) || (rads > 3 * Math.PI / 4 && rads < 5 * Math.PI / 4) ) {
+          return "middle";
+        } else if (rads >= Math.PI / 4 && rads <= 3 * Math.PI / 4) {
+          return "start";
+        } else if (rads >= 5 * Math.PI / 4 && rads <= 7 * Math.PI / 4) {
+          return "end";
+        } else {
+          return "end";
+        }
+      })
+    .text(function(d) { return d.data.name + " " + d.data.percentage + "%"; });
+*/
+
+/*
+function coordinates_on_circle(hyp, angle){
+  var radian= angle * Math.PI / 180 //trig uses radians
+  return {
+    x: Math.cos(radian) * hyp, //adj = cos(r) * hyp
+    y: Math.sin(radian) * hyp //opp = sin(r) * hyp
+  }
+}
+var radius=100
+var angle=45
+coordinates_on_circle(radius, angle);
+*/
+
+var background = g.append("path")
+    .datum({endAngle: tau})
+    .style("fill", "#171b25")
+    .attr("d", arc);
+
+var background = g.append("path")
+    .datum({endAngle: tau})
+    .style("fill", "#171b25")
+    .attr("d", arc2);
+
+var foreground = g.append("path")
+    .datum({endAngle: 0 * tau})
+    .attr("d", arc)
+    .style("fill", "#eaff00");
+
+var foreground2 = g.append("path")
+    .datum({endAngle: 0 * tau})
+    .style("fill", "#d68400");	
+	
+var foreground3 = g.append("path")
+    .datum({endAngle: 0 * tau})
+    .style("fill", "#2ee4f4");
+	
+	var foregroundb = g.append("path")
+    .datum({endAngle: 0* tau})
+    .style("fill", "#1d8487")
+    .attr("d", arc2);
+	
+	var foreground2b = g.append("path")
+    .datum({endAngle: 0 * tau})
+     .style("fill", "#935c02")
+    .attr("d", arc2);	
+	
+	var foreground3b = g.append("path")
+    .datum({endAngle: 0 * tau})
+    .style("fill", "#45462b")
+    .attr("d", arc2)
+
+function animateme(){
+foreground.transition()
+      .duration(1250)
+      .attrTween("d", arcTween(1 * tau));
+	  
+	  foregroundb.transition()
+      .duration(1250)
+      .attrTween("d", arcTween2(1 * tau));
+	  
+	  foreground2.transition()
+      .duration(1250)
+      .attrTween("d", arcTween(0.6 * tau));
+	  
+	  foreground2b.transition()
+      .duration(1250)
+      .attrTween("d", arcTween2(0.6 * tau));
+	  
+	    foreground3.transition()
+      .duration(1250)
+      .attrTween("d", arcTween(0.2 * tau));
+	  
+	  foreground3b.transition()
+      .duration(1250)
+      .attrTween("d", arcTween2(0.2 * tau));
+}
+
+function arcTween(newAngle) {
+  return function(d) {
+    var interpolate = d3.interpolate(d.endAngle, newAngle);
+    return function(t) {
+      d.endAngle = interpolate(t);
+      return arc(d);
+    };
+  };
+}
+
+function arcTween2(newAngle) {
+  return function(d) {
+    var interpolate = d3.interpolate(d.endAngle, newAngle);
+    return function(t) {
+      d.endAngle = interpolate(t);
+      return arc2(d);
+    };
+  };
+}
+/*
+function arcTween3(outerRadius, delay) {
+      return function() {
+        d3.select(this).transition().delay(delay).attrTween("d", function(d) {
+          var i = d3.interpolate(d.outerRadius, outerRadius);
+          return function(t) {
+            d.outerRadius = i(t);
+            return arc(d);
+          };
+        });
+      };
+    }
+*/
+</script>
+</body>
+</html>

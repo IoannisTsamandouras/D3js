@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<style>
+</style>
+<body>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+ <script>
+var start = 0;
+var counter = 50;
+var radius = 100;
+var endAngle = Math.PI * 2;
+var boxSize = radius * 2;
+var progress = start;
+var step = counter > start ? -0.01 : 0.01;
+
+var circle = d3.arc()
+  .startAngle(0)
+  .innerRadius(radius)
+  .outerRadius(radius-10);
+
+var svg = d3.select("body")
+  .append("svg")
+  .attr("width", boxSize)
+  .attr("height", boxSize);
+
+var g = svg.append("g")
+  .attr("transform", "translate(" + boxSize / 2 + "," + boxSize / 2 + ")");
+
+var g = g.append("g")
+  .attr("class", "progress");
+
+g.append("path")
+  .attr("class", "radial-progress")
+  .attr("fill", "blue")
+  .attr("stroke", "black")
+  .attr('stroke-width', "1px")
+  .attr("d", circle.endAngle(endAngle));
+
+var value = g.append("path")
+  .attr("class", "radial-progress__value")
+  .attr("fill", "red")
+  .attr("stroke", "black")
+  .attr("stroke-width", "1px");
+
+function update(progress) {
+  value.attr("d", circle.endAngle(endAngle * progress));
+} 
+
+(function iterate() {
+  update(progress);
+  if (counter > 0) {
+    counter--;
+    progress += step;
+    setTimeout(iterate, 15);
+  }
+})();
+</script>
+</body>
+</html>

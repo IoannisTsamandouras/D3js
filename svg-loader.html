@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0px;
+        }
+        
+        body {
+            background-color: #282D4F;
+        }
+        
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        svg {
+            height: 200px;
+        }
+        
+        .loader {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 5px;
+            stroke-dasharray: 160px;
+            stroke-dashoffset: 0px;
+            animation: loading 1.2s infinite ease-in-out, colors 6s infinite alternate;
+            transform-origin: 50px;
+            stroke-linecap: round;
+        }
+        
+        @keyframes loading {
+            0% {
+                stroke-dashoffset: 160px;
+            }
+            50% {
+                stroke-dashoffset: 80px;
+                transform: rotate(120deg);
+            }
+            100% {
+                stroke-dashoffset: 160px;
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes colors {
+            0% {
+                stroke: #4285F4;
+            }
+            25% {
+                stroke: #DE3E35;
+            }
+            50% {
+                stroke: #F7C223;
+            }
+            75% {
+                stroke: #1B9A59;
+            }
+            100% {
+                stroke: #4285F4;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <svg viewBox='0 0 100 100'>
+            <circle class="loader" cx=50 cy=50 r=25></circle>
+        </svg>
+    </div>
+</body>
+
+</html>

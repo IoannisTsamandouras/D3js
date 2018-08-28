@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<hmtl>
+<meta charset="utf-8">
+<style>
+body {
+  font: 10px sans-serif;
+  background-color: #171b25;
+}
+
+path.domain {
+  opacity:0;
+}
+
+.domain {
+	opacity:0;
+}
+
+/* Remove the first grid line on top of x-axis 
+.tick:first-of-type line{ 
+	opacity:0;
+}
+*/
+.x-axis path {
+  display: none;
+}
+
+.x-axis *{
+  stroke: #b7c0c5;
+   opacity:0.7;
+}
+
+.y-axis *{
+  stroke: #b7c0c5;
+   opacity:0.7;
+}
+
+.area {
+  fill: #a46e0f;
+   opacity:0.7;
+}
+
+.area2 {
+  fill: url(#area-gradient);					
+  stroke-width: 0px;		
+   opacity:0.7;
+}
+
+.line {
+  fill: transparent;
+  stroke:GoldenRod;
+  stroke-width:1px;
+}
+
+.line2 {
+  fill: transparent;
+  stroke:#239311;
+  stroke-width:1px;
+}
+
+.grid *{
+  stroke: #b7c0c5;
+   opacity:0.7;
+}
+
+</style>
+<body>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+
+var data = [{
+      "month": "January",
+      "high": "220500",
+      "low" : "200100"
+    }, {
+      "month": "February",
+      "high": "219500",
+      "low" : "199040"
+    }, {
+      "month": "March",
+      "high": "230000",
+      "low" : "198400"
+    }, {
+      "month": "April",
+      "high": "195400",
+      "low" : "190700"
+    }, {
+      "month": "May",
+      "high": "230300",
+      "low" : "220700"
+    }, {
+      "month": "June",
+      "high": "172100",
+      "low" : "154500"
+    }, {
+      "month": "July",
+      "high": "210800",
+      "low" : "203400"
+    }, {
+      "month": "August",
+      "high": "220000",
+      "low" : "192500"
+    }, {
+      "month": "September",
+      "high": "232400",
+      "low" : "212900"
+    }, {
+      "month": "October",
+      "high": "240300",
+      "low" : "220000"
+    }, {
+      "month": "November",
+      "high": "265300",
+      "low" : "235000"
+    }, {
+      "month": "December",
+      "high": "280200",
+      "low" : "270600"
+    }];
+
+// margins
+var margin = {top: 20, right: 30, bottom: 30, left: 50},
+    width = 960 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+
+// locale customization 
+var locale = d3.formatDefaultLocale({
+  "decimal": ",",
+  "thousands": ".",
+  "grouping": [3],
+  "currency": ["€", ""],
+  "dateTime": "%a %b %e %X %Y",
+  "date": "%m/%d/%Y",
+  "time": "%H:%M:%S",
+  "periods": ["AM", "PM"],
+  "days": ["Κυριακή", "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκέυή", "Σαββάτο"],
+  "shortDays": ["Κυρ", "Δευ", "Τρι", "Τετ", "Πεμ", "Παρ", "Σαβ"],
+  "months": ["Ιανουάριος", "Φεβρουάριος", "Μάρτιος", "Απρίλιος", "Μάιος", "Ιούνιος", "Ιούλιος", "Αύγουστος", "Σεπτέμβριος", "Οκτώβριος", "Νοέμβριος", "Δεκέμβριος"],
+  "shortMonths": ["Ιαν", "Φεβ", "Μαρ", "Απρ", "Μαι", "Ιουν", "Ιουλ", "Αυγ", "Σεπ", "Οκτ", "Νοε", "Δεκ"]
+});
+
+// parsing data
+var parseDate = d3.timeParse("%B");
+
+// x-axis encoding
+var x = d3.scaleTime()
+	  .range([0, width]);
+
+// y-axis encoding
+var y = d3.scaleLinear()
+	  .range([height, 0]);
+ 
+//  x-axis scaling
+var xAxis = d3.axisBottom()
+    .scale(x)
+// locale’s time abbreviation is: "%-I:%M:%S %p"
+	  .tickFormat(d3.timeFormat("%b")); 
+
+// y-axis scaling
+var yAxis = d3.axisLeft()
+    .ticks(5)
+	  .tickPadding(5)
+    .scale(y);
+
+// area draw
+var area = d3.area()
+    .x(function(d) { return x(d.month); })
+    .y0(function(d) { return y(d.low); })
+    .y1(function(d) { return y(d.high); });
+
+var area2 = d3.area()
+    .x(function(d) { return x(d.month); })
+    .y0(height)
+    .y1(function(d) { return y(d.low); });
+
+var line = d3.line()
+    .x(function(d) { return x(d.month); })
+    .y(function(d) { return y(d.high); });
+
+var line2 = d3.line()
+    .x(function(d) { return x(d.month); })
+    .y(function(d) { return y(d.low); });
+
+// adding the svg element
+var svg = d3.select("body")
+	  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  	.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+ function chart(error, data) {
+  data.forEach(function(d) {
+    d.month = parseDate(d.month);
+    d.low = +d.low;
+    d.high = +d.high;
+  });
+
+  // setting scales
+  x.domain(d3.extent(data, function(d) { return d.month;})).range([0, 800]);
+  y.domain([0, 400000]);
+    //d3.min(data, function(d) { return d.low; }), 
+  //d3.max(data, function(d) { return d.high; })]);
+  // gridlines in y axis function
+
+ function make_y_gridlines() {		
+    return d3.axisLeft(y)
+        .ticks(5);
+}
+  // add the Y gridlines
+  svg.append("g")			
+       .attr("class", "grid")
+       .call(make_y_gridlines()
+       .tickSize(-width + margin.left + margin.right)
+       .tickFormat(""));
+
+  // area logic
+  svg.append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("d", area);
+
+  svg.append("path")
+      .datum(data)
+      .attr("class", "area2")
+      .attr("d", area2);
+  
+  svg.append("path")
+      .datum(data)
+      .attr("class", "line")
+      .attr("d", line);
+  
+  svg.append("path")
+      .datum(data)
+      .attr("class", "line2")
+      .attr("d", line2);     
+  // appending x axis data
+
+  svg.append("g")
+      .attr("class", "x-axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  // text label for the x axis    
+  svg.append("text")      
+      .attr("x", 0 )
+	  .attr("y",  480 )
+	  .style("text-anchor", "middle");
+ 
+  // appending y axis data
+  svg.append("g")
+      .attr("class", "y-axis")
+      .call(yAxis)
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end");
+ }
+
+// set the gradient
+var linearGradient = svg.append("defs")
+	  .append("linearGradient")
+	  .attr("id", "area-gradient")
+	  .attr("x1", "0%")
+    .attr("y1", "0%")
+    .attr("x2", "0%")
+    .attr("y2", "100%");
+
+ linearGradient.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", "#239311 ");
+
+ linearGradient.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", "# 004700");
+
+chart([],data);
+</script>
+</body>
+</hmtl>

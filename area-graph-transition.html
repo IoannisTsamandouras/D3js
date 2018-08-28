@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<hmtl>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+  background-color: #171b25;
+}
+
+path.domain {
+  opacity:0;
+}
+
+.domain {
+	opacity:0;
+}
+
+.x-axis path {
+  display: none;
+}
+
+.x-axis *{
+  stroke: #b7c0c5;
+  opacity: 0.7;
+}
+
+.axis-minor-x *{
+  stroke: #d9d9d9;
+    opacity: 0.7;
+}
+
+.y-axis *{
+  stroke: #b7c0c5;
+  opacity: 0.7;
+}
+
+.area {
+  fill: #86592d;
+  opacity: 0.7;
+}
+
+.line {
+  fill: transparent;
+  stroke:GoldenRod;
+  stroke-width:1px;
+}
+
+.grid *{
+  stroke: #b7c0c5;
+  opacity: 0.7;
+}
+
+.axis-minor-x .tick line {display: none;}
+
+</style>
+<body>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+
+var data = [{
+      "month": "May 4 14:00",
+      "value": "2330",
+    }, {
+      "month": "May 4 16:00",
+      "value": "3219",
+    }, {
+      "month": "May 4 18:00",
+      "value": "3324",
+    }, {
+      "month": "May 4 18:00",
+      "value": "3826",
+    }, {
+      "month": "May 4 20:00",
+      "value": "3030",
+    }, {
+      "month": "May 4 22:00",
+      "value": "3332",
+    }, {
+      "month": "May 5 00:00",
+      "value": "2800",
+    }, {
+      "month": "May 5 02:00",
+      "value": "4380",
+    }, {
+      "month": "May 5 04:00",
+      "value": "3320",
+    }, {
+      "month": "May 5 06:00",
+      "value": "3200",
+    }, {
+      "month": "May 5 08:00",
+      "value": "3380",
+    }, {
+      "month": "May 5 10:00",
+      "value": "2360",
+    }];
+
+// margins
+var margin = {top: 20, right: 30, bottom: 30, left: 50},
+    width = 960 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+
+// parsing data
+var parseDate = d3.timeParse("%b%d %H:%M");
+
+// format values
+var formatValue = d3.format(".2f");
+
+// x-axis encoding
+var x = d3.scaleTime()
+	  .range([0, width]);
+
+// y-axis encoding
+var y = d3.scaleLinear()
+	  .range([height, 0]);
+ 
+//  x-axis scaling
+var xAxis = d3.axisBottom().tickFormat(d3.timeFormat("%b %d")).scale(x);
+var xMinorAxis = d3.axisBottom().tickFormat(d3.timeFormat("%H:%M")).tickSize(20).scale(x);
+
+// y-axis scaling
+var yAxis = d3.axisLeft()
+    .ticks(5)
+	  .tickPadding(5)
+    .tickFormat(function(d) { return formatValue(d)})
+    .scale(y);
+
+// area draw
+var area = d3.area()
+    .x(function(d) { return x(d.month); })
+    .y0(height)
+    .y1(function(d) { return y(d.value); });
+
+var line = d3.line()
+    .x(function(d) { return x(d.month); })
+    .y(function(d) { return y(d.value); });
+
+// adding the svg element
+var svg = d3.select("body")
+	  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  	.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+ function chart(error, data) {
+  data.forEach(function(d) {
+    d.month = parseDate(d.month);
+    d.value = +d.value;
+  });
+
+  // setting scales
+  x.domain(d3.extent(data, function(d) { return d.month;})).range([0, 800]);
+  y.domain([0, 5000]);
+
+  svg.append("clipPath")
+    .attr("id", "rectClip")
+    .append("rect")
+    .attr("width", 0)
+    .attr("height", height);
+
+  // area logic
+  svg.append("path")
+      .datum(data)
+      .attr("class", "area")
+      .transition()
+      .duration(2000)
+      .attr("d", area)
+      .attr("clip-path", "url(#rectClip)");
+    
+  // draw line
+  svg.append("path")
+      .datum(data)
+      .attr("class", "line")
+      .transition()
+      .duration(2000)
+      .attr("d", line)
+      .attr("clip-path", "url(#rectClip)");
+
+      d3.select("#rectClip rect")
+      .transition().duration(3000)
+      .attr("width", width);
+
+  // appending x axis data
+  svg.append("g")
+      .attr("class", "x-axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+    .attr("class", "axis-minor-x")
+    .attr("transform", "translate(0, " + height + ")")
+    .call(xMinorAxis);
+
+  // text label for the x axis    
+  svg.append("text")      
+      .attr("x", 0 )
+	  .attr("y",  480 )
+	  .style("text-anchor", "middle");
+
+    // add the Y gridlines
+  svg.append("g")     
+      .attr("class", "grid")
+      .call(make_y_gridlines()
+      .tickSize(-width+ margin.left + margin.right)
+      .tickFormat(""));
+ 
+  // appending y axis data
+  svg.append("g")
+      .attr("class", "y-axis")
+      .call(yAxis)
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end");
+ }
+
+ function make_y_gridlines() {    
+    return d3.axisLeft(y)
+        .ticks(5);
+}
+
+chart([],data);
+</script>
+</body>
+</hmtl>
