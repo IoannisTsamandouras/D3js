@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<head>
+		<title>SVG Gauge</title>
+	</head>
+	<style>
+	body {
+		background-color: #666;
+	}	
+
+	#wrapper {
+		position: relative;  
+		margin: auto;
+	}
+
+	#meter {
+	    width: 100%; 
+	    height: 100%;
+	    transform: rotateX(180deg);
+	}
+
+	.circle {
+		fill: none;
+	}
+
+	#mask {
+	    stroke: #404040; 
+	    stroke-width: 60;
+	}
+
+	.blackie {
+		fill:none;
+		stroke: #000000;
+		stroke-width: 30;
+	}
+
+	.range { 
+		stroke-width: 60; 
+	}
+
+	.scale {
+  		stroke: #cccccc;
+	}
+
+	#slider, #lbl {
+	    position: absolute;
+	}
+
+	#slider {
+	    cursor: pointer;
+	    left: 0;
+	    margin: auto;
+	    right: 0;
+	    top: 60%;
+	    width: 94%;
+	}
+
+	#lbl {
+	    border-radius: 2px;
+	    color: white;   
+	    font-family: 'courier new';
+	    font-size: 24pt;
+	    font-weight: bold;
+	    padding: 4px 4px 2px 4px;
+	    right: 415px;
+	    top: 55%;
+	}
+
+	#meter_needle {
+	    height: 40%;
+	    left: 0;
+	    margin: auto;
+	    position: absolute;
+	    right: 0;
+	    top: 10%;
+	    transform-origin: bottom center;
+	    transform: rotate(270deg);
+	}
+
+	line {
+		stroke: #fff;
+		stroke-width: 1px;
+	}
+
+	rect {
+		fill: transparent;
+	}
+
+	text {
+		fill:#fff;
+	}
+
+	</style>
+	<body>
+	  <div id="wrapper">
+		<svg id="meter">
+		<g class="scale">
+		<defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:rgb(102, 102, 255);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgb(204, 204, 255);stop-opacity:1" />
+		  </linearGradient>
+		  <g id="gauge" transform="rotate(90) scale(1, -1)">
+				<g id="noon">
+					<rect x="-10" y="-420" width="20" height="400"/>
+					<line x1="0" y1="-370" x2="0" y2="-360"/>
+					<text x="0" y="-320"></text>
+				</g>
+			</g>
+        </defs>
+		    <circle id="high" class="circle range" cx="50%" cy="50%" stroke="url(#grad)">
+		    </circle>
+		    <circle id="mask" class="circle" cx="50%" cy="50%" >
+		    </circle>
+		    <circle id="low" class="blackie" cx="50%" cy="50%" r="360">
+		    </circle>
+		    <circle id="outline_ends" class="circle outline" cx="50%" cy="50%">
+			</circle>			
+		</g>
+		<use xlink:href="#gauge" x="450" y="450" />
+		</svg>
+			<img id="meter_needle" src="gauge-needle.svg" alt="">
+			<input id="slider" type="range" min="0" max="100" value="0" /> 
+			<label id="lbl" id="value" for="">0%</label>
+	</div>		
+		<script>
+		var r = 400;
+		var circles = document.querySelectorAll('.circle');
+		var total_circles = circles.length;
+		for (var i = 0; i < total_circles; i++) {
+		    circles[i].setAttribute('r', r);
+		}
+
+		var meter_dimension = (r * 2) + 100;
+		var wrapper = document.querySelector('#wrapper');
+		wrapper.style.width = meter_dimension + 'px';
+		wrapper.style.height = meter_dimension + 'px';
+	
+		var cf = 2 * Math.PI * r;
+		var semi_cf = cf / 2;
+		var z = 40 * Math.PI;
+		document.querySelector('#outline_ends')
+		    .setAttribute('stroke-dasharray', 2 + ',' + (semi_cf - 2));
+		document.querySelector('#high')
+		    .setAttribute('stroke-dasharray',  semi_cf + ',' + cf);
+		document.querySelector('#mask')
+		    .setAttribute('stroke-dasharray', semi_cf + ',' + cf);
+		document.querySelector('#low')
+		    .setAttribute('stroke-dasharray', semi_cf - z + ',' + cf);
+		
+		var slider = document.querySelector('#slider');
+		var lbl = document.querySelector("#lbl");
+		var mask = document.querySelector('#mask');
+		var meter_needle =  document.querySelector('#meter_needle');
+
+		for (i=0; i<=180; i = i + 10) {
+			var new_tick = noon.cloneNode(true);
+			new_tick.getElementsByTagName('text')[0].textContent = i;
+			new_tick.removeAttribute("id");
+			new_tick.setAttribute("transform", "rotate(" + i + " 0 0)");-
+			gauge.appendChild(new_tick);
+		}    
+
+		function range_change_event() {
+		    var percent = slider.value;
+		    var meter_value = semi_cf - ((percent * semi_cf) / 100);
+		    mask.setAttribute('stroke-dasharray', meter_value + ',' + cf);
+		    meter_needle.style.transform = 'rotate(' + (270 + ((percent * 180) / 100)) + 'deg)';
+		    lbl.textContent = percent + '%';
+		}
+		slider.addEventListener('input', range_change_event);
+		</script>
+	</body>
+</html>
