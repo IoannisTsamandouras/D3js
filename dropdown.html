@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>checklist sample</title>
+  <style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: #0b4a79;
+}
+
+input[type="checkbox"]:checked::after {
+  border: 1px solid #a8a8a8;
+  background: #dadada;
+  background: linear-gradient(to bottom, #f0f0f0 0%, #c5c5c5 100%);
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  position: absolute;
+  z-index: -10;
+  border-radius: 2px;
+}
+
+.multiselect {
+  width: 200px;
+}
+
+.selectBox {
+  position: relative;
+}
+
+.selectBox select {
+  width: 100%;
+  font-weight: bold;
+  background: #0000;
+  border: none;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #c9dde8 0%, #86b3cc 100%);
+}
+
+.overSelect {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+#checkboxes {
+  background-color: #103c5d;
+  display: none;
+  border: 1px #dadada solid;
+  margin: 5px 0 0 0;
+  border-radius: 3px;
+}
+
+#checkboxes label {
+  display: block;
+  font-family: Helvetica, Arial, sans-serif;
+  margin: 4px;
+  padding: 3px 2px;
+  position: relative;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0);
+  z-index: 1;
+}
+
+#checkboxes label:hover {
+  background-color: #1e90ff;
+  border-radius: 2px;
+}
+.custom{
+	color:#fff !important;
+}
+  </style>  
+	<body>
+	<form>
+	  <div class="multiselect">
+	    <div class="selectBox" onclick="showCheckboxes()">
+	      <select  class="custom">
+	        <option>Group</option>
+	      </select>
+	      <div class="overSelect"></div>
+	    </div>
+	    <div id="checkboxes">
+      <label for="one">
+			<input type="checkbox" id="one" /> Boiler
+    			</label>
+      <label for="two">
+			<input type="checkbox" id="two" /> Engine
+    			</label>
+      <label for="three">
+			<input type="checkbox" id="three" /> Fan
+    			</label>
+      <label for="one">
+    				<input type="checkbox" id="four" /> Location
+    			</label>
+      <label for="two">
+			<input type="checkbox" id="five" /> Ship
+    			</label>
+      <label for="three">
+			<input type="checkbox" id="six" /> Valmarine
+				</label>
+      <label for="three">
+			<input type="checkbox" id="seven" /> Voyage</label>
+    </div>
+  </div>
+</form>
+	<script>
+	var expanded = false;
+
+function showCheckboxes() {
+  var checkboxes = document.getElementById("checkboxes");
+  if (!expanded) {
+    checkboxes.style.display = "block";
+    expanded = true;
+  } else {
+    checkboxes.style.display = "none";
+    expanded = false;
+  }
+}
+	</script>
+	</body>
+</html>
